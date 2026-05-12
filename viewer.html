@@ -1,0 +1,796 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Учебный план — Дисциплины и компетенции</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: "Segoe UI", Arial, sans-serif; background: #f0f2f5; color: #1a1a2e; min-height: 100vh; }
+
+  header {
+    background: #1a1a2e; color: #fff;
+    padding: 10px 20px; display: flex; align-items: center; gap: 12px;
+    flex-wrap: wrap; min-height: 52px;
+  }
+  header h1 { font-size: 1rem; font-weight: 600; white-space: nowrap; }
+  .header-icon { flex-shrink: 0; }
+
+  .group-tabs {
+    display: flex; gap: 4px; flex: 1; overflow-x: auto; padding: 2px 0;
+    scrollbar-width: none;
+  }
+  .group-tabs::-webkit-scrollbar { display: none; }
+
+  .group-tab {
+    display: flex; align-items: center; gap: 5px;
+    padding: 5px 12px; border-radius: 7px;
+    background: rgba(255,255,255,0.1); cursor: pointer;
+    font-size: 0.78rem; white-space: nowrap; transition: all .15s;
+    border: 1px solid transparent; user-select: none;
+  }
+  .group-tab:hover { background: rgba(255,255,255,0.18); }
+  .group-tab.active { background: #4361ee; border-color: #4361ee; }
+  .group-tab .tab-name { max-width: 180px; overflow: hidden; text-overflow: ellipsis; }
+  .group-tab .tab-close {
+    font-size: 0.7rem; opacity: 0.5; cursor: pointer; padding: 1px 3px; border-radius: 3px;
+    line-height: 1;
+  }
+  .group-tab .tab-close:hover { opacity: 1; background: rgba(255,255,255,0.2); }
+  .group-tab .tab-edit {
+    font-size: 0.65rem; opacity: 0.4; cursor: pointer; padding: 1px 3px; border-radius: 3px;
+  }
+  .group-tab .tab-edit:hover { opacity: 1; background: rgba(255,255,255,0.2); }
+
+  .header-btn {
+    padding: 5px 12px; border-radius: 7px; border: 1px solid rgba(255,255,255,0.25);
+    background: rgba(255,255,255,0.08); color: #fff; font-size: 0.78rem;
+    cursor: pointer; transition: all .15s; white-space: nowrap;
+  }
+  .header-btn:hover { background: rgba(255,255,255,0.2); }
+  .header-btn.primary { background: #4361ee; border-color: #4361ee; }
+
+  .layout { display: flex; height: calc(100vh - 52px); }
+
+  .sidebar {
+    width: 320px; min-width: 240px;
+    background: #fff; border-right: 1px solid #e0e4ec;
+    display: flex; flex-direction: column; overflow: hidden;
+  }
+  .search-wrap { padding: 12px 14px 8px; border-bottom: 1px solid #eaecf2; }
+  .search-wrap input {
+    width: 100%; padding: 7px 10px 7px 32px;
+    border: 1px solid #d0d5e0; border-radius: 7px;
+    font-size: 0.85rem;
+    background: #f7f8fc url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='13' height='13' fill='%23999' viewBox='0 0 16 16'%3E%3Cpath d='M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001c.03.04.062.078.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1.007 1.007 0 0 0-.115-.099zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0z'/%3E%3C/svg%3E") no-repeat 10px center;
+    outline: none; transition: border-color .2s;
+  }
+  .search-wrap input:focus { border-color: #4361ee; }
+
+  .filter-row { padding: 6px 14px 8px; display: flex; gap: 5px; }
+  .filter-btn {
+    font-size: 0.73rem; padding: 3px 9px; border-radius: 20px;
+    border: 1px solid #d0d5e0; background: #fff; cursor: pointer; transition: all .15s;
+  }
+  .filter-btn.active { background: #4361ee; color: #fff; border-color: #4361ee; }
+
+  .stats-bar {
+    padding: 5px 14px 7px; border-bottom: 1px solid #eaecf2;
+    font-size: 0.72rem; color: #9ca3af; display: flex; gap: 16px;
+  }
+  .stats-bar strong { color: #374151; }
+
+  .disc-list { flex: 1; overflow-y: auto; padding: 3px 0; }
+  .disc-item {
+    padding: 9px 14px; cursor: pointer;
+    border-left: 3px solid transparent;
+    display: flex; justify-content: space-between; align-items: center; gap: 8px;
+    transition: all .13s;
+  }
+  .disc-item:hover { background: #f3f5fb; }
+  .disc-item.selected { background: #eef1ff; border-left-color: #4361ee; }
+  .disc-item.inactive { opacity: 0.4; }
+  .disc-name { font-size: 0.845rem; line-height: 1.35; flex: 1; }
+  .disc-hours {
+    font-size: 0.7rem; color: #6b7280; white-space: nowrap;
+    background: #f0f2f7; padding: 2px 6px; border-radius: 9px;
+  }
+
+  .main { flex: 1; overflow-y: auto; padding: 26px 34px; }
+
+  .placeholder {
+    display: flex; flex-direction: column; align-items: center;
+    justify-content: center; height: 100%; color: #c0c5d0; gap: 10px;
+    text-align: center;
+  }
+  .placeholder p { font-size: 0.9rem; }
+  .placeholder .big-icon { margin-bottom: 8px; }
+
+  .upload-zone {
+    border: 2px dashed #d0d5e0; border-radius: 14px; padding: 30px;
+    text-align: center; cursor: pointer; transition: all .2s;
+    background: #fafbff; max-width: 500px; margin-top: 16px;
+  }
+  .upload-zone:hover { border-color: #4361ee; background: #eef1ff; }
+  .upload-zone input { display: none; }
+  .upload-zone p { font-size: 0.85rem; color: #6b7280; margin-top: 8px; }
+  .upload-zone .uz-title { font-size: 0.95rem; font-weight: 600; color: #374151; }
+
+  .disc-detail { max-width: 800px; }
+  .detail-header { margin-bottom: 22px; padding-bottom: 14px; border-bottom: 2px solid #e8ebf2; }
+  .detail-header h2 { font-size: 1.25rem; font-weight: 700; color: #1a1a2e; line-height: 1.3; }
+  .detail-meta { margin-top: 8px; display: flex; gap: 8px; flex-wrap: wrap; }
+  .badge { font-size: 0.72rem; padding: 3px 9px; border-radius: 11px; font-weight: 500; }
+  .badge-blue  { background: #dbeafe; color: #1d4ed8; }
+  .badge-green { background: #d1fae5; color: #065f46; }
+  .badge-gray  { background: #f3f4f6; color: #6b7280; }
+  .badge-purple{ background: #ede9fe; color: #5b21b6; }
+
+  .no-rpd {
+    background: #fffbeb; border: 1px solid #fde68a;
+    border-radius: 10px; padding: 18px 22px;
+    color: #92400e; font-size: 0.875rem; margin-top: 4px;
+  }
+
+  .acc-l1 { border: 1px solid #e0e4ec; border-radius: 10px; margin-bottom: 10px; overflow: hidden; }
+  .acc-l1-head {
+    display: flex; align-items: center; gap: 10px;
+    padding: 12px 16px; cursor: pointer;
+    background: #f6f7fb; user-select: none; transition: background .14s;
+  }
+  .acc-l1-head:hover { background: #eef0f8; }
+  .acc-l1-head .chevron { transition: transform .2s; color: #4361ee; flex-shrink: 0; }
+  .acc-l1-head.open .chevron { transform: rotate(90deg); }
+  .comp-code { font-size: 0.72rem; font-weight: 700; padding: 2px 8px; border-radius: 6px; background: #dbeafe; color: #1d4ed8; white-space: nowrap; }
+  .acc-l1-title { font-weight: 600; font-size: 0.875rem; color: #1a1a2e; flex: 1; line-height: 1.35; }
+  .acc-l1-body { display: none; padding: 4px 16px 14px; border-top: 1px solid #e8ebf2; background: #fff; }
+  .acc-l1-body.open { display: block; }
+
+  .acc-l2 { border: 1px solid #e8ebf2; border-radius: 8px; margin-top: 10px; overflow: hidden; }
+  .acc-l2-head {
+    display: flex; align-items: center; gap: 8px;
+    padding: 9px 13px; cursor: pointer;
+    background: #fafbff; user-select: none; transition: background .14s;
+  }
+  .acc-l2-head:hover { background: #f0f3ff; }
+  .acc-l2-head .chevron { transition: transform .2s; color: #7c8db5; flex-shrink: 0; }
+  .acc-l2-head.open .chevron { transform: rotate(90deg); }
+  .ind-code { font-size: 0.68rem; font-weight: 700; padding: 2px 7px; border-radius: 5px; background: #ede9fe; color: #5b21b6; white-space: nowrap; }
+  .acc-l2-title { font-size: 0.845rem; font-weight: 600; color: #374151; flex: 1; line-height: 1.3; }
+  .acc-l2-body { display: none; padding: 10px 13px 12px; border-top: 1px solid #e8ebf2; }
+  .acc-l2-body.open { display: block; }
+
+  .zuv-item { display: flex; gap: 10px; margin-bottom: 9px; font-size: 0.84rem; line-height: 1.6; }
+  .zuv-tag { flex-shrink: 0; font-weight: 700; font-size: 0.68rem; padding: 3px 8px; border-radius: 6px; height: fit-content; margin-top: 2px; }
+  .zuv-znat  { background: #dbeafe; color: #1e40af; }
+  .zuv-umet  { background: #d1fae5; color: #065f46; }
+  .zuv-vlad  { background: #ede9fe; color: #5b21b6; }
+  .zuv-text  { color: #374151; }
+
+  .summary-block {
+    margin-top: 18px; padding: 14px 16px;
+    background: #f8faff; border: 1px solid #d4daf5;
+    border-radius: 10px;
+  }
+  .summary-title { font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; color: #6b7280; margin-bottom: 10px; }
+
+  ::-webkit-scrollbar { width: 4px; }
+  ::-webkit-scrollbar-thumb { background: #d0d5e0; border-radius: 2px; }
+
+  /* Modal */
+  .modal-overlay {
+    display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.45);
+    z-index: 1000; justify-content: center; align-items: center;
+  }
+  .modal-overlay.open { display: flex; }
+  .modal-box {
+    background: #fff; border-radius: 14px; padding: 24px 28px;
+    max-width: 520px; width: 90%; max-height: 85vh; overflow-y: auto;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.25);
+  }
+  .modal-box.large { max-width: 800px; }
+  .modal-box h3 { font-size: 1.05rem; margin-bottom: 16px; color: #1a1a2e; }
+  .modal-box label { display: block; font-size: 0.82rem; color: #6b7280; margin-bottom: 4px; margin-top: 12px; }
+  .modal-box input[type="text"] {
+    width: 100%; padding: 8px 12px; border: 1px solid #d0d5e0;
+    border-radius: 8px; font-size: 0.88rem; outline: none;
+  }
+  .modal-box input[type="text"]:focus { border-color: #4361ee; }
+  .modal-actions { display: flex; gap: 8px; justify-content: flex-end; margin-top: 20px; }
+  .btn {
+    padding: 7px 18px; border-radius: 8px; font-size: 0.84rem;
+    cursor: pointer; border: 1px solid #d0d5e0; background: #fff;
+    transition: all .15s;
+  }
+  .btn:hover { background: #f3f5fb; }
+  .btn.primary { background: #4361ee; color: #fff; border-color: #4361ee; }
+  .btn.primary:hover { background: #3a56d4; }
+  .btn.danger { color: #dc2626; }
+  .btn.danger:hover { background: #fef2f2; }
+
+  .report-pre {
+    background: #f8f9fc; border: 1px solid #e0e4ec; border-radius: 8px;
+    padding: 16px; font-size: 0.78rem; line-height: 1.55;
+    white-space: pre-wrap; word-break: break-word;
+    max-height: 60vh; overflow-y: auto; font-family: "Cascadia Code", "Consolas", monospace;
+  }
+
+  .saved-reports-list { margin-top: 12px; }
+  .saved-report-item {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 8px 12px; border: 1px solid #e8ebf2; border-radius: 8px;
+    margin-bottom: 6px; font-size: 0.84rem; cursor: pointer;
+    transition: all .13s;
+  }
+  .saved-report-item:hover { background: #f3f5fb; }
+  .saved-report-item .sr-name { flex: 1; }
+  .saved-report-item .sr-date { font-size: 0.72rem; color: #9ca3af; margin-left: 10px; }
+  .saved-report-item .sr-actions { display: flex; gap: 4px; }
+  .sr-btn {
+    padding: 2px 8px; border-radius: 5px; border: 1px solid #d0d5e0;
+    background: #fff; font-size: 0.72rem; cursor: pointer;
+  }
+  .sr-btn:hover { background: #eef1ff; }
+</style>
+</head>
+<body>
+<header>
+  <svg class="header-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#7986cb" stroke-width="2">
+    <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>
+  </svg>
+  <h1>Учебный план — Дисциплины и компетенции</h1>
+  <div class="group-tabs" id="groupTabs"></div>
+  <button class="header-btn primary" onclick="openAddModal()">+ Добавить</button>
+  <button class="header-btn" onclick="showReport()" id="btnReport">Отчёт</button>
+  <button class="header-btn" onclick="openReportsModal()">Сохранённые</button>
+</header>
+
+<div class="layout">
+  <aside class="sidebar">
+    <div class="search-wrap">
+      <input type="text" id="searchInput" placeholder="Поиск дисциплины...">
+    </div>
+    <div class="filter-row">
+      <button class="filter-btn active" data-filter="all">Все</button>
+      <button class="filter-btn" data-filter="active">Активные</button>
+      <button class="filter-btn" data-filter="inactive">Неактивные</button>
+    </div>
+    <div class="stats-bar">
+      <span>Всего: <strong id="statTotal">—</strong></span>
+      <span>Показано: <strong id="statShown">—</strong></span>
+      <span>С РПД: <strong id="statRpd">—</strong></span>
+    </div>
+    <div class="disc-list" id="discList"></div>
+  </aside>
+
+  <main class="main" id="mainPanel">
+    <div class="placeholder">
+      <svg class="big-icon" width="60" height="60" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2">
+        <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>
+      </svg>
+      <p>Нажмите «+ Добавить» для загрузки данных</p>
+    </div>
+  </main>
+</div>
+
+<!-- Add Group Modal -->
+<div class="modal-overlay" id="addModal">
+  <div class="modal-box">
+    <h3>Добавить группу</h3>
+    <label>Название группы</label>
+    <input type="text" id="groupNameInput" placeholder="Например: Группа 1">
+    <label>Файл данных (JSON)</label>
+    <div class="upload-zone" id="uploadZone" onclick="document.getElementById('jsonFileInput').click()">
+      <div class="uz-title">Выберите или перетащите файл</div>
+      <p>disciplines_data.json — результат работы parse_up_rpd.py</p>
+      <input type="file" id="jsonFileInput" accept=".json">
+    </div>
+    <div class="modal-actions">
+      <button class="btn" onclick="closeModal('addModal')">Отмена</button>
+      <button class="btn primary" onclick="addGroupFromModal()">Добавить</button>
+    </div>
+  </div>
+</div>
+
+<!-- Rename Modal -->
+<div class="modal-overlay" id="renameModal">
+  <div class="modal-box">
+    <h3>Переименовать группу</h3>
+    <label>Новое название</label>
+    <input type="text" id="renameInput">
+    <div class="modal-actions">
+      <button class="btn" onclick="closeModal('renameModal')">Отмена</button>
+      <button class="btn primary" onclick="confirmRename()">Сохранить</button>
+    </div>
+  </div>
+</div>
+
+<!-- Report Viewer Modal -->
+<div class="modal-overlay" id="reportModal">
+  <div class="modal-box large">
+    <h3>Отчёт</h3>
+    <pre class="report-pre" id="reportContent"></pre>
+    <div class="modal-actions">
+      <button class="btn" onclick="downloadCurrentReport()">Скачать .txt</button>
+      <button class="btn primary" onclick="saveCurrentReport()">Сохранить в отчёты</button>
+      <button class="btn" onclick="closeModal('reportModal')">Закрыть</button>
+    </div>
+  </div>
+</div>
+
+<!-- Saved Reports Modal -->
+<div class="modal-overlay" id="reportsListModal">
+  <div class="modal-box large">
+    <h3>Сохранённые отчёты</h3>
+    <div id="savedReportsList" class="saved-reports-list"></div>
+    <div class="modal-actions">
+      <button class="btn" onclick="closeModal('reportsListModal')">Закрыть</button>
+    </div>
+  </div>
+</div>
+
+<!-- Confirm Delete Modal -->
+<div class="modal-overlay" id="confirmModal">
+  <div class="modal-box">
+    <h3>Удалить группу?</h3>
+    <p id="confirmText" style="font-size:.88rem;color:#6b7280;margin-top:8px"></p>
+    <div class="modal-actions">
+      <button class="btn" onclick="closeModal('confirmModal')">Отмена</button>
+      <button class="btn danger" id="confirmBtn">Удалить</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const STORAGE_KEY = "up_viewer_state";
+let state = loadState();
+
+function loadState() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (raw) return JSON.parse(raw);
+  } catch(e) {}
+  return { groups: {}, currentGroupId: null, savedReports: {} };
+}
+
+function saveState() {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+  } catch(e) {
+    console.warn("localStorage full", e);
+  }
+}
+
+function uid() {
+  return "g_" + Date.now().toString(36) + Math.random().toString(36).slice(2,6);
+}
+
+let currentFilter = "all";
+let currentSearch = "";
+let selectedIndex = null;
+
+function getCurrentGroup() {
+  return state.groups[state.currentGroupId] || null;
+}
+
+function getCurrentData() {
+  const g = getCurrentGroup();
+  return g ? g.data : [];
+}
+
+// ─── Group Tabs ──────────────────────────────────────────────────────────
+
+function renderTabs() {
+  const el = document.getElementById("groupTabs");
+  const ids = Object.keys(state.groups);
+  if (!ids.length) { el.innerHTML = ""; return; }
+  el.innerHTML = ids.map(id => {
+    const g = state.groups[id];
+    const active = id === state.currentGroupId ? "active" : "";
+    return `<div class="group-tab ${active}" data-id="${id}" onclick="switchGroup('${id}')">
+      <span class="tab-name" ondblclick="event.stopPropagation();startRename('${id}')">${esc(g.name)}</span>
+      <span class="tab-edit" onclick="event.stopPropagation();startRename('${id}')" title="Переименовать">&#9998;</span>
+      <span class="tab-close" onclick="event.stopPropagation();confirmDelete('${id}')" title="Удалить">&times;</span>
+    </div>`;
+  }).join("");
+  const btn = document.getElementById("btnReport");
+  if (btn) btn.style.opacity = getCurrentData().length ? "1" : "0.4";
+}
+
+function switchGroup(id) {
+  if (!state.groups[id]) return;
+  state.currentGroupId = id;
+  selectedIndex = null;
+  saveState();
+  renderTabs();
+  renderList();
+  showPlaceholder();
+}
+
+function confirmDelete(id) {
+  const g = state.groups[id];
+  if (!g) return;
+  document.getElementById("confirmText").textContent = `Группа «${g.name}» будет удалена вместе со всеми данными.`;
+  document.getElementById("confirmBtn").onclick = () => {
+    delete state.groups[id];
+    if (state.currentGroupId === id) {
+      const ids = Object.keys(state.groups);
+      state.currentGroupId = ids.length ? ids[ids.length - 1] : null;
+    }
+    selectedIndex = null;
+    saveState();
+    renderTabs();
+    renderList();
+    showPlaceholder();
+    closeModal("confirmModal");
+  };
+  openModal("confirmModal");
+}
+
+let renameId = null;
+function startRename(id) {
+  renameId = id;
+  const g = state.groups[id];
+  document.getElementById("renameInput").value = g.name;
+  openModal("renameModal");
+  setTimeout(() => document.getElementById("renameInput").focus(), 100);
+}
+
+function confirmRename() {
+  if (!renameId || !state.groups[renameId]) return;
+  const v = document.getElementById("renameInput").value.trim();
+  if (v) state.groups[renameId].name = v;
+  saveState();
+  renderTabs();
+  closeModal("renameModal");
+  renameId = null;
+}
+
+// ─── Add Group ──────────────────────────────────────────────────────────
+
+let pendingFileData = null;
+
+function openAddModal() {
+  document.getElementById("groupNameInput").value = "";
+  document.getElementById("jsonFileInput").value = "";
+  pendingFileData = null;
+  openModal("addModal");
+}
+
+document.getElementById("jsonFileInput").addEventListener("change", function(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = function(ev) {
+    try {
+      pendingFileData = JSON.parse(ev.target.result);
+      if (!Array.isArray(pendingFileData)) throw new Error("Not array");
+      document.querySelector("#uploadZone .uz-title").textContent = file.name + " (" + pendingFileData.length + " дисциплин)";
+    } catch(err) {
+      alert("Ошибка чтения JSON: " + err.message);
+      pendingFileData = null;
+    }
+  };
+  reader.readAsText(file);
+});
+
+const uz = document.getElementById("uploadZone");
+uz.addEventListener("dragover", e => { e.preventDefault(); uz.style.borderColor = "#4361ee"; });
+uz.addEventListener("dragleave", () => { uz.style.borderColor = ""; });
+uz.addEventListener("drop", e => {
+  e.preventDefault(); uz.style.borderColor = "";
+  const file = e.dataTransfer.files[0];
+  if (!file) return;
+  const dt = new DataTransfer();
+  dt.items.add(file);
+  document.getElementById("jsonFileInput").files = dt.files;
+  document.getElementById("jsonFileInput").dispatchEvent(new Event("change"));
+});
+
+function addGroupFromModal() {
+  if (!pendingFileData) { alert("Выберите файл JSON"); return; }
+  const name = document.getElementById("groupNameInput").value.trim() || "Группа " + (Object.keys(state.groups).length + 1);
+  const id = uid();
+  state.groups[id] = { name, data: pendingFileData, createdAt: new Date().toISOString() };
+  state.currentGroupId = id;
+  selectedIndex = null;
+  saveState();
+  renderTabs();
+  renderList();
+  showPlaceholder();
+  closeModal("addModal");
+}
+
+// ─── Modal helpers ──────────────────────────────────────────────────────
+
+function openModal(id) { document.getElementById(id).classList.add("open"); }
+function closeModal(id) { document.getElementById(id).classList.remove("open"); }
+
+document.querySelectorAll(".modal-overlay").forEach(el => {
+  el.addEventListener("click", e => { if (e.target === el) el.classList.remove("open"); });
+});
+
+document.addEventListener("keydown", e => {
+  if (e.key === "Escape") document.querySelectorAll(".modal-overlay.open").forEach(el => el.classList.remove("open"));
+});
+
+// ─── Report ─────────────────────────────────────────────────────────────
+
+function generateReport(data) {
+  const lines = [
+    "=".repeat(72), "ОТЧЁТ ПО ДИСЦИПЛИНАМ УЧЕБНОГО ПЛАНА", "=".repeat(72),
+    "Всего: " + data.length + ", активных: " + data.filter(d => d.active).length, ""
+  ];
+  data.forEach((d, i) => {
+    const mark = d.active ? "+" : "-";
+    lines.push(String(i+1).padStart(3) + ". [" + mark + "] " + d.name + "  (" + d.hours + " ч.)");
+    const comps = d.competencies || [];
+    if (comps.length) {
+      comps.forEach(comp => {
+        lines.push("       ├─ [" + comp.code + "] " + comp.description);
+        (comp.indicators || []).forEach(ind => {
+          lines.push("       │   ├─ [" + ind.code + "] " + ind.description);
+          Object.entries(ind.outcomes || {}).forEach(([k, v]) => {
+            lines.push("       │   │     " + k + ": " + v);
+          });
+        });
+      });
+    } else {
+      lines.push("       └─ (РПД не найдена)");
+    }
+    const so = d.summary_outcomes || {};
+    if (Object.keys(so).length) {
+      lines.push("       └─ ИТОГО:");
+      Object.entries(so).forEach(([k, v]) => {
+        lines.push("              " + k + ": " + v);
+      });
+    }
+    lines.push("");
+  });
+  return lines.join("\n");
+}
+
+function showReport() {
+  const data = getCurrentData();
+  if (!data.length) return;
+  const report = generateReport(data);
+  document.getElementById("reportContent").textContent = report;
+  openModal("reportModal");
+}
+
+function downloadCurrentReport() {
+  const g = getCurrentGroup();
+  if (!g) return;
+  const report = generateReport(g.data);
+  const blob = new Blob([report], { type: "text/plain;charset=utf-8" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = (g.name || "report") + ".txt";
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+function saveCurrentReport() {
+  const g = getCurrentGroup();
+  if (!g) return;
+  const report = generateReport(g.data);
+  const rid = "r_" + Date.now().toString(36);
+  state.savedReports[rid] = {
+    groupName: g.name,
+    content: report,
+    date: new Date().toISOString()
+  };
+  saveState();
+  alert("Отчёт сохранён");
+}
+
+function openReportsModal() {
+  renderSavedReports();
+  openModal("reportsListModal");
+}
+
+function renderSavedReports() {
+  const el = document.getElementById("savedReportsList");
+  const reports = Object.entries(state.savedReports);
+  if (!reports.length) {
+    el.innerHTML = '<p style="color:#9ca3af;font-size:.85rem">Нет сохранённых отчётов</p>';
+    return;
+  }
+  el.innerHTML = reports.map(([rid, r]) => {
+    const d = new Date(r.date).toLocaleString("ru-RU");
+    return `<div class="saved-report-item">
+      <span class="sr-name">${esc(r.groupName)}</span>
+      <span class="sr-date">${d}</span>
+      <div class="sr-actions">
+        <button class="sr-btn" onclick="viewSavedReport('${rid}')">Просмотр</button>
+        <button class="sr-btn" onclick="downloadSavedReport('${rid}')">Скачать</button>
+        <button class="sr-btn" onclick="deleteSavedReport('${rid}')">Удалить</button>
+      </div>
+    </div>`;
+  }).join("");
+}
+
+function viewSavedReport(rid) {
+  const r = state.savedReports[rid];
+  if (!r) return;
+  document.getElementById("reportContent").textContent = r.content;
+  closeModal("reportsListModal");
+  openModal("reportModal");
+}
+
+function downloadSavedReport(rid) {
+  const r = state.savedReports[rid];
+  if (!r) return;
+  const blob = new Blob([r.content], { type: "text/plain;charset=utf-8" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = (r.groupName || "report") + ".txt";
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+function deleteSavedReport(rid) {
+  delete state.savedReports[rid];
+  saveState();
+  renderSavedReports();
+}
+
+// ─── Discipline List ────────────────────────────────────────────────────
+
+function chevron() {
+  return '<svg class="chevron" width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M5 3l6 5-6 5"/></svg>';
+}
+
+const ZUV_TAGS = {
+  "Знать":   ["zuv-znat",  "Знать"],
+  "Уметь":   ["zuv-umet",  "Уметь"],
+  "Владеть": ["zuv-vlad",  "Владеть"],
+};
+
+function esc(s) {
+  const d = document.createElement("div");
+  d.textContent = s;
+  return d.innerHTML;
+}
+
+function renderZUV(outcomes) {
+  if (!outcomes || !Object.keys(outcomes).length) return "";
+  return Object.entries(outcomes).map(([k, v]) => {
+    const [cls] = ZUV_TAGS[k] || ["zuv-vlad"];
+    return '<div class="zuv-item"><span class="zuv-tag ' + cls + '">' + esc(k) + '</span><span class="zuv-text">' + esc(v) + '</span></div>';
+  }).join("");
+}
+
+function renderIndicator(ind, ci, ii) {
+  const bodyId = "l2-" + ci + "-" + ii;
+  const headId = "l2h-" + ci + "-" + ii;
+  const zuv = renderZUV(ind.outcomes);
+  const hasContent = zuv.length > 0;
+  return '<div class="acc-l2">' +
+    '<div class="acc-l2-head" id="' + headId + '" onclick="toggleAcc(\'' + headId + '\',\'' + bodyId + '\')">' +
+    chevron() + '<span class="ind-code">' + esc(ind.code) + '</span>' +
+    '<span class="acc-l2-title">' + esc(ind.description) + '</span></div>' +
+    '<div class="acc-l2-body" id="' + bodyId + '">' +
+    (hasContent ? zuv : '<span style="color:#9ca3af;font-size:.82rem">Данные ЗУВ не найдены</span>') +
+    '</div></div>';
+}
+
+function renderCompetency(comp, ci) {
+  const bodyId = "l1-" + ci;
+  const headId = "l1h-" + ci;
+  const inds = (comp.indicators || []).map((ind, ii) => renderIndicator(ind, ci, ii)).join("");
+  return '<div class="acc-l1">' +
+    '<div class="acc-l1-head" id="' + headId + '" onclick="toggleAcc(\'' + headId + '\',\'' + bodyId + '\')">' +
+    chevron() + '<span class="comp-code">' + esc(comp.code) + '</span>' +
+    '<span class="acc-l1-title">' + esc(comp.description) + '</span></div>' +
+    '<div class="acc-l1-body" id="' + bodyId + '">' +
+    (inds || '<span style="color:#9ca3af;font-size:.82rem;display:block;margin-top:8px">Индикаторы не найдены</span>') +
+    '</div></div>';
+}
+
+function renderSummary(so) {
+  if (!so || !Object.keys(so).length) return "";
+  return '<div class="summary-block"><div class="summary-title">Итого по дисциплине (сводные результаты)</div>' + renderZUV(so) + '</div>';
+}
+
+function renderDetail(disc) {
+  const activeBadge = disc.active
+    ? '<span class="badge badge-green">&#10003; В плане</span>'
+    : '<span class="badge badge-gray">&mdash; Исключена</span>';
+  const comps = disc.competencies || [];
+  const so = disc.summary_outcomes || {};
+  let body = "";
+  if (comps.length) {
+    body = comps.map((c, i) => renderCompetency(c, i)).join("") + renderSummary(so);
+  } else {
+    body = '<div class="no-rpd">Рабочая программа по этой дисциплине не найдена в РПД.<br>Проверьте совпадение названия или повторно запустите парсер.</div>';
+  }
+  return '<div class="disc-detail"><div class="detail-header"><h2>' + esc(disc.name) + '</h2>' +
+    '<div class="detail-meta"><span class="badge badge-blue">&#9201; ' + disc.hours + ' ак. часов</span>' +
+    activeBadge +
+    (comps.length ? '<span class="badge badge-purple">Компетенций: ' + comps.length + '</span>' : "") +
+    '</div></div>' + body + '</div>';
+}
+
+function toggleAcc(headId, bodyId) {
+  document.getElementById(headId).classList.toggle("open");
+  document.getElementById(bodyId).classList.toggle("open");
+}
+
+function filteredList() {
+  const data = getCurrentData();
+  return data
+    .map((d, i) => Object.assign({}, d, { _i: i }))
+    .filter(d => {
+      if (currentFilter === "active"    && !d.active) return false;
+      if (currentFilter === "inactive"  &&  d.active) return false;
+      if (currentSearch && !d.name.toLowerCase().includes(currentSearch)) return false;
+      return true;
+    });
+}
+
+function renderList() {
+  const data = getCurrentData();
+  const list = filteredList();
+  const totalWithRpd = data.filter(d => d.competencies && d.competencies.length).length;
+  document.getElementById("statTotal").textContent  = data.length;
+  document.getElementById("statShown").textContent  = list.length;
+  document.getElementById("statRpd").textContent    = totalWithRpd;
+
+  document.getElementById("discList").innerHTML = list.map(d =>
+    '<div class="disc-item ' + (!d.active ? "inactive" : "") + ' ' + (selectedIndex === d._i ? "selected" : "") + '" onclick="selectDisc(' + d._i + ')">' +
+    '<span class="disc-name">' + esc(d.name) + '</span>' +
+    '<span class="disc-hours">' + d.hours + ' ч.</span></div>'
+  ).join("");
+}
+
+function selectDisc(idx) {
+  selectedIndex = idx;
+  renderList();
+  const data = getCurrentData();
+  document.getElementById("mainPanel").innerHTML = renderDetail(data[idx]);
+}
+
+function showPlaceholder() {
+  const data = getCurrentData();
+  if (!data.length) {
+    document.getElementById("mainPanel").innerHTML =
+      '<div class="placeholder"><svg class="big-icon" width="60" height="60" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2">' +
+      '<path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>' +
+      '<p>Нажмите «+ Добавить» для загрузки данных</p></div>';
+  } else {
+    document.getElementById("mainPanel").innerHTML =
+      '<div class="placeholder"><svg class="big-icon" width="60" height="60" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2">' +
+      '<path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>' +
+      '<p>Выберите дисциплину из списка слева</p></div>';
+  }
+}
+
+// ─── Events ─────────────────────────────────────────────────────────────
+
+document.getElementById("searchInput").addEventListener("input", e => {
+  currentSearch = e.target.value.toLowerCase().trim();
+  renderList();
+});
+
+document.querySelectorAll(".filter-btn").forEach(btn => {
+  btn.addEventListener("click", () => {
+    document.querySelectorAll(".filter-btn").forEach(b => b.classList.remove("active"));
+    btn.classList.add("active");
+    currentFilter = btn.dataset.filter;
+    renderList();
+  });
+});
+
+// ─── Init ───────────────────────────────────────────────────────────────
+
+renderTabs();
+if (state.currentGroupId && state.groups[state.currentGroupId]) {
+  renderList();
+  showPlaceholder();
+}
+</script>
+</body>
+</html>

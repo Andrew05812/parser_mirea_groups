@@ -1,0 +1,15 @@
+__pycache__/
+*.pyc
+*.pyo
+.env
+.venv
+
+*.xlsx
+*.docx
+*.xls
+*.doc
+
+.idea/
+.vscode/
+*.swp
+*.swo
