@@ -4,10 +4,7 @@ __pycache__/
 .env
 .venv
 
-*.xlsx
-*.docx
-*.xls
-*.doc
+
 
 .idea/
 .vscode/
